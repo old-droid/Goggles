@@ -8,7 +8,6 @@ AI-powered meta search engine that aggregates results from multiple search engin
 - **AI intent detection** - Automatically classifies queries as General, Math, Conversion, OSINT, or Code
 - **Dynamic SearXNG instances** - Fetches live instances from searx.space, rotates per search
 - **Zero API keys** - No sign-up, no tokens, no billing
-- **Engine selector** - Toggle which search engines to use per session
 - **AI summaries** - Get condensed answers from search results
 - **Special handlers** - Direct math evaluation, currency/unit conversion
 - **OSINT mode** - Reformats queries for intelligence gathering
