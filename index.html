@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goggles - Meta Search Engine</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #000;
+            color: #ccc;
+            min-height: 100vh;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        a {
+            color: #5b9;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        a:visited {
+            color: #87a;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .header {
+            padding: 20px 0 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .header.compact {
+            padding: 10px 0 5px;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #5b9;
+            letter-spacing: -1px;
+        }
+
+        .header.compact .logo h1 {
+            font-size: 1.2rem;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        .header.compact .tagline {
+            display: none;
+        }
+
+        .search-container {
+            padding: 15px 0 20px;
+            transition: all 0.3s ease;
+        }
+
+        .search-container.compact {
+            padding: 8px 0 12px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 8px 50px 8px 10px;
+            background: #111;
+            border: 1px solid #333;
+            color: #ccc;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .search-box:focus {
+            border-color: #5b9;
+        }
+
+        .search-box::placeholder {
+            color: #555;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            background: #222;
+            border: 1px solid #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-btn:hover {
+            background: #333;
+        }
+
+        .search-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: #5b9;
+        }
+
+        .intent-bar {
+            display: none;
+            padding: 6px 0;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .intent-bar.visible {
+            display: block;
+        }
+
+        .intent-badge {
+            display: inline;
+            color: #5b9;
+            font-weight: bold;
+        }
+
+        .intent-text {
+            color: #666;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .quick-action {
+            padding: 3px 10px;
+            background: #111;
+            border: 1px solid #333;
+            color: #888;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .quick-action:hover {
+            color: #5b9;
+            border-color: #5b9;
+        }
+
+        .engine-selector {
+            display: none;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 8px;
+            background: #111;
+            border: 1px solid #333;
+        }
+
+        .engine-selector.visible {
+            display: flex;
+        }
+
+        .engine-label {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        .engine-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: #888;
+            user-select: none;
+        }
+
+        .engine-toggle:has(input:checked) {
+            border-color: #5b9;
+            color: #5b9;
+        }
+
+        .engine-toggle input {
+            display: none;
+        }
+
+        .engine-toggle::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #444;
+        }
+
+        .engine-toggle:has(input:checked)::before {
+            background: #5b9;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .loading.visible {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            margin: 0 auto 10px;
+            border: 2px solid #333;
+            border-top-color: #5b9;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .loading-sources {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .source-pill {
+            padding: 2px 8px;
+            background: #111;
+            border: 1px solid #333;
+            font-size: 0.7rem;
+            color: #555;
+        }
+
+        .source-pill.done {
+            border-color: #5b9;
+            color: #5b9;
+        }
+
+        .error-message {
+            display: none;
+            padding: 10px;
+            border: 1px solid #633;
+            color: #c66;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        .special-result {
+            display: none;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+        }
+
+        .special-result.visible {
+            display: block;
+        }
+
+        .special-label {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .special-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #5b9;
+            margin-bottom: 4px;
+        }
+
+        .special-detail {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .ai-summary {
+            display: none;
+            padding: 10px 12px;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+        }
+
+        .ai-summary.visible {
+            display: block;
+        }
+
+        .ai-summary-header {
+            margin-bottom: 8px;
+            font-size: 0.7rem;
+            color: #5b9;
+            text-transform: uppercase;
+        }
+
+        .ai-summary-content {
+            color: #aaa;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .ai-summary-content p {
+            margin-bottom: 6px;
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-container.visible {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #222;
+            font-size: 0.8rem;
+        }
+
+        .results-count {
+            color: #666;
+        }
+
+        .results-count span {
+            color: #5b9;
+            font-weight: bold;
+        }
+
+        .sort-select {
+            padding: 3px 8px;
+            background: #111;
+            border: 1px solid #333;
+            color: #888;
+            font-size: 0.75rem;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .result-card {
+            padding: 10px 0;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .result-card:last-child {
+            border-bottom: none;
+        }
+
+        .result-source {
+            display: inline;
+            font-size: 0.65rem;
+            color: #555;
+            text-transform: uppercase;
+            margin-right: 6px;
+        }
+
+        .result-source.google { color: #5b9; }
+        .result-source.ddg { color: #5b9; }
+        .result-source.searxng { color: #58a; }
+        .result-source.wikipedia { color: #a86; }
+        .result-source.bing { color: #87a; }
+
+        .result-title {
+            margin-bottom: 2px;
+        }
+
+        .result-title a {
+            color: #5b9;
+            font-size: 1rem;
+            font-weight: normal;
+        }
+
+        .result-title a:hover {
+            text-decoration: underline;
+        }
+
+        .result-url {
+            display: block;
+            color: #666;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .result-snippet {
+            color: #888;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .result-snippet mark {
+            background: none;
+            color: #5b9;
+            font-weight: bold;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state h2 {
+            color: #555;
+            font-size: 1rem;
+            font-weight: normal;
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            color: #444;
+            font-size: 0.8rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #333;
+            font-size: 0.7rem;
+        }
+
+        .footer a {
+            color: #444;
+        }
+
+        .history-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #111;
+            border: 1px solid #333;
+            max-height: 180px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .history-dropdown.visible {
+            display: block;
+        }
+
+        .history-item {
+            padding: 8px 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .history-item:hover {
+            background: #1a1a1a;
+            color: #5b9;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+        }
+
+        @media (max-width: 640px) {
+            .logo h1 { font-size: 1.4rem; }
+            .search-box { font-size: 13px; }
+            .result-title a { font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header" id="header">
+            <h1>Goggles</h1>
+            <p class="tagline">AI-Powered Meta Search Engine</p>
+        </header>
+
+        <div class="search-container" id="searchContainer">
+            <div class="search-wrapper">
+                <input type="text" class="search-box" id="searchInput" placeholder="Search..." autocomplete="off" />
+                <button class="search-btn" id="searchBtn" aria-label="Search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </button>
+                <div class="history-dropdown" id="historyDropdown"></div>
+            </div>
+            <div class="quick-actions" id="quickActions">
+                <button class="quick-action" data-query="latest tech news 2026">Tech News</button>
+                <button class="quick-action" data-query="USD to EUR currency">Currency</button>
+                <button class="quick-action" data-query="find social media profiles for">OSINT</button>
+                <button class="quick-action" data-query="python async tutorial">Code</button>
+                <button class="quick-action" data-query="2^16 + sqrt(144)">Math</button>
+            </div>
+            <div class="engine-selector" id="engineSelector">
+                <span class="engine-label">Engines:</span>
+                <label class="engine-toggle"><input type="checkbox" checked data-engine="google" /> Google</label>
+                <label class="engine-toggle"><input type="checkbox" checked data-engine="ddg" /> DDG</label>
+                <label class="engine-toggle"><input type="checkbox" checked data-engine="searxng" /> SearXNG</label>
+                <label class="engine-toggle"><input type="checkbox" checked data-engine="wikipedia" /> Wikipedia</label>
+                <label class="engine-toggle"><input type="checkbox" data-engine="bing" /> Bing</label>
+            </div>
+        </div>
+
+        <div class="intent-bar" id="intentBar">
+            <span class="intent-badge" id="intentBadge">General</span>
+            <span class="intent-text" id="intentText">Searching...</span>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="loadingText">Searching...</div>
+            <div class="loading-sources" id="loadingSources"></div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="special-result math-result" id="mathResult">
+            <div class="special-label">Math Result</div>
+            <div class="special-value" id="mathValue"></div>
+            <div class="special-detail" id="mathDetail"></div>
+        </div>
+
+        <div class="special-result conversion-result" id="conversionResult">
+            <div class="special-label">Conversion</div>
+            <div class="special-value" id="conversionValue"></div>
+            <div class="special-detail" id="conversionDetail"></div>
+        </div>
+
+        <div class="special-result osint-result" id="osintResult">
+            <div class="special-label">OSINT</div>
+            <div class="special-value" id="osintValue"></div>
+            <div class="special-detail" id="osintDetail"></div>
+        </div>
+
+        <div class="ai-summary" id="aiSummary">
+            <div class="ai-summary-header">AI Summary</div>
+            <div class="ai-summary-content" id="aiSummaryContent"></div>
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount"></div>
+                <select class="sort-select" id="sortSelect">
+                    <option value="relevance">Relevance</option>
+                    <option value="source">Source</option>
+                </select>
+            </div>
+            <div id="resultsList"></div>
+        </div>
+
+        <div class="empty-state" id="emptyState">
+            <h2>Search the web with Goggles</h2>
+            <p>AI-powered meta search across multiple engines</p>
+        </div>
+
+        <footer class="footer">
+            <p>uncloseai AI &middot; Google &middot; DuckDuckGo &middot; SearXNG &middot; Wikipedia &middot; Bing</p>
+        </footer>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        const CORS_PROXIES = [
+            { name: 'corsproxy.io', url: 'https://corsproxy.io/?' },
+            { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' },
+            { name: 'corsbridge', url: 'https://corsbridge.vercel.app/?' },
+            { name: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' }
+        ];
+
+        let searxngInstances = [];
+        let searxngInstanceIndex = 0;
+
+        async function fetchSearXNGInstances() {
+            try {
+                const response = await fetch('https://searx.space/data/instances.json');
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+
+                const instances = [];
+                if (data.instances) {
+                    for (const [url, info] of Object.entries(data.instances)) {
+                        if (info && info.online !== false && info.tls && info.tls.grade && ['A+', 'A', 'A-'].includes(info.tls.grade)) {
+                            instances.push(url);
+                        }
+                    }
+                }
+
+                if (instances.length > 0) {
+                    searxngInstances = instances.sort(() => Math.random() - 0.5);
+                    console.log(`Loaded ${searxngInstances.length} SearXNG instances from searx.space`);
+                }
+            } catch (e) {
+                console.warn('Failed to fetch SearXNG instances from searx.space:', e.message);
+            }
+
+            if (searxngInstances.length === 0) {
+                searxngInstances = [
+                    'https://search.bus-hit.me',
+                    'https://searx.be',
+                    'https://searx.tiekoetter.com',
+                    'https://search.ononoki.org',
+                    'https://paulgo.io',
+                    'https://search.mdosch.de',
+                    'https://searx.work',
+                    'https://priv.au'
+                ];
+                console.log(`Using ${searxngInstances.length} fallback SearXNG instances`);
+            }
+        }
+
+        function getNextSearXNGInstances(count = 3) {
+            const instances = [];
+            for (let i = 0; i < count; i++) {
+                const idx = (searxngInstanceIndex + i) % searxngInstances.length;
+                instances.push(searxngInstances[idx]);
+            }
+            searxngInstanceIndex = (searxngInstanceIndex + count) % searxngInstances.length;
+            return instances;
+        }
+
+        const INTENT_CONFIG = {
+            general: {
+                label: 'General Search',
+                icon: '🔍',
+                class: 'general',
+                sources: ['google', 'ddg', 'searxng', 'wikipedia'],
+                description: 'Searching across 4 engines...'
+            },
+            math: {
+                label: 'Math',
+                icon: '🧮',
+                class: 'math',
+                sources: ['google', 'ddg', 'wikipedia'],
+                description: 'Computing mathematical expression...'
+            },
+            conversion: {
+                label: 'Conversion',
+                icon: '🔄',
+                class: 'conversion',
+                sources: ['google', 'ddg', 'wikipedia'],
+                description: 'Converting units/currency...'
+            },
+            osint: {
+                label: 'OSINT',
+                icon: '🔐',
+                class: 'osint',
+                sources: ['google', 'ddg', 'searxng', 'bing'],
+                description: 'Running OSINT-focused queries across 4 engines...'
+            },
+            code: {
+                label: 'Code/Technical',
+                icon: '💻',
+                class: 'code',
+                sources: ['google', 'ddg', 'searxng', 'wikipedia'],
+                description: 'Searching technical sources...'
+            }
+        };
+
+        let currentIntent = 'general';
+        let allResults = [];
+        let searchHistory = JSON.parse(localStorage.getItem('goggles_history') || '[]');
+        let userEngines = JSON.parse(localStorage.getItem('goggles_engines') || '["google","ddg","searxng","wikipedia"]');
+
+        const $ = id => document.getElementById(id);
+        const searchInput = $('searchInput');
+        const searchBtn = $('searchBtn');
+        const header = $('header');
+        const searchContainer = $('searchContainer');
+        const intentBar = $('intentBar');
+        const intentBadge = $('intentBadge');
+        const intentText = $('intentText');
+        const loading = $('loading');
+        const loadingText = $('loadingText');
+        const loadingSources = $('loadingSources');
+        const errorMessage = $('errorMessage');
+        const resultsContainer = $('resultsContainer');
+        const resultsCount = $('resultsCount');
+        const resultsList = $('resultsList');
+        const emptyState = $('emptyState');
+        const historyDropdown = $('historyDropdown');
+        const quickActions = $('quickActions');
+        const engineSelector = $('engineSelector');
+
+        async function init() {
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') performSearch();
+            });
+            searchInput.addEventListener('focus', showHistory);
+            searchInput.addEventListener('blur', () => setTimeout(hideHistory, 200));
+            document.querySelectorAll('.quick-action').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    searchInput.value = btn.dataset.query;
+                    performSearch();
+                });
+            });
+            $('sortSelect').addEventListener('change', sortResults);
+
+            engineSelector.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = userEngines.includes(cb.dataset.engine);
+                cb.addEventListener('change', () => {
+                    if (cb.checked) {
+                        if (!userEngines.includes(cb.dataset.engine)) userEngines.push(cb.dataset.engine);
+                    } else {
+                        userEngines = userEngines.filter(e => e !== cb.dataset.engine);
+                    }
+                    if (userEngines.length === 0) {
+                        userEngines = ['google', 'ddg', 'searxng', 'wikipedia'];
+                        engineSelector.querySelectorAll('input').forEach(i => i.checked = true);
+                    }
+                    localStorage.setItem('goggles_engines', JSON.stringify(userEngines));
+                });
+            });
+
+            await fetchSearXNGInstances();
+        }
+
+        function showHistory() {
+            if (searchHistory.length === 0) return;
+            historyDropdown.innerHTML = searchHistory.slice(0, 8).map(q =>
+                `<div class="history-item" data-query="${escapeHtml(q)}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span>${escapeHtml(q)}</span>
+                </div>`
+            ).join('');
+            historyDropdown.classList.add('visible');
+            historyDropdown.querySelectorAll('.history-item').forEach(item => {
+                item.addEventListener('mousedown', () => {
+                    searchInput.value = item.dataset.query;
+                    hideHistory();
+                    performSearch();
+                });
+            });
+        }
+
+        function hideHistory() {
+            historyDropdown.classList.remove('visible');
+        }
+
+        function addToHistory(query) {
+            searchHistory = searchHistory.filter(q => q !== query);
+            searchHistory.unshift(query);
+            searchHistory = searchHistory.slice(0, 20);
+            localStorage.setItem('goggles_history', JSON.stringify(searchHistory));
+        }
+
+        async function callAI(prompt, maxTokens = 400) {
+            const providers = [
+                {
+                    name: 'uncloseai-hermes',
+                    url: 'https://hermes.ai.unturf.com/v1/chat/completions',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'adamo1139/Hermes-3-Llama-3.1-8B-FP8-Dynamic',
+                        messages: [{ role: 'user', content: prompt }],
+                        temperature: 0.1,
+                        max_tokens: maxTokens
+                    })
+                },
+                {
+                    name: 'uncloseai-qwen',
+                    url: 'https://qwen.ai.unturf.com/v1/chat/completions',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'hf.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q4_K_M',
+                        messages: [{ role: 'user', content: prompt }],
+                        temperature: 0.1,
+                        max_tokens: maxTokens
+                    })
+                },
+                {
+                    name: 'pollinations-gpt4o',
+                    url: 'https://text.pollinations.ai/',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [{ role: 'user', content: prompt }],
+                        model: 'openai-large',
+                        max_tokens: maxTokens,
+                        temperature: 0.1
+                    })
+                },
+                {
+                    name: 'pollinations-raw',
+                    url: `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=openai-large&max_tokens=${maxTokens}`,
+                    method: 'GET',
+                    headers: {},
+                    body: null,
+                    isRaw: true
+                }
+            ];
+
+            for (const provider of providers) {
+                try {
+                    const response = await fetch(provider.url, {
+                        method: provider.method,
+                        headers: provider.headers,
+                        body: provider.body
+                    });
+
+                    if (!response.ok) {
+                        console.warn(`${provider.name} returned ${response.status}`);
+                        continue;
+                    }
+
+                    if (provider.isRaw) {
+                        return await response.text();
+                    }
+
+                    const data = await response.json();
+                    const content = data.choices?.[0]?.message?.content || '';
+                    if (content) return content;
+                } catch (e) {
+                    console.warn(`${provider.name} AI call failed:`, e.message);
+                }
+            }
+            return '';
+        }
+
+        async function detectIntent(query) {
+            try {
+                const text = await callAI(
+                    `Analyze this search query and return ONLY a JSON object with "intent" and "reason" fields.
+The intent MUST be one of: "general", "math", "conversion", "osint", "code"
+
+Intent rules:
+- "math": Contains mathematical expressions, calculations, equations (e.g., "2+2", "sqrt(144)", "what is 15% of 200")
+- "conversion": Unit conversions, currency conversions (e.g., "USD to EUR", "5 km to miles", "100 F to C")
+- "osint": Open source intelligence requests - finding people, usernames, emails, domains, social media profiles, phone numbers, IP addresses, reverse image search, data breaches (e.g., "find info on username john123", "email lookup test@gmail.com", "whois example.com")
+- "code": Programming, technical documentation, coding tutorials (e.g., "python async tutorial", "react hooks explained")
+- "general": Everything else
+
+Query: "${query}"
+
+Return ONLY valid JSON, nothing else.`
+                );
+
+                const jsonMatch = text.match(/\{[^}]+\}/);
+                if (jsonMatch) {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    return { intent: parsed.intent || 'general', reason: parsed.reason || '' };
+                }
+            } catch (e) {
+                console.warn('Intent detection failed, using general:', e);
+            }
+            return { intent: 'general', reason: 'Default classification' };
+        }
+
+        function detectIntentLocal(query) {
+            const q = query.toLowerCase().trim();
+
+            if (/^[\d\s\+\-\*\/\^\%\(\)\.]+(sqrt|sin|cos|tan|log|ln|abs|pow|pi|e)?/i.test(q) ||
+                /what\s+is\s+[\d\s\+\-\*\/\^\%]+/i.test(q) ||
+                /\d+\s*[%\+\-\*\/\^]\s*\d+/i.test(q)) {
+                return { intent: 'math', reason: 'Mathematical expression detected' };
+            }
+
+            if (/(\d+\s*(usd|eur|gbp|jpy|cad|aud|chf|cny|inr|btc|eth))\s+(to|in|equals?)\s+(\d*\s*\w+)/i.test(q) ||
+                /\d+\s*(km|m|cm|mm|mi|ft|in|lb|kg|g|oz|f|c|k|l|gal)\s+(to|in|equals?)\s+/i.test(q) ||
+                /(convert|conversion)\s+/i.test(q)) {
+                return { intent: 'conversion', reason: 'Conversion pattern detected' };
+            }
+
+            if (/(osint|open.source.intelligence|find.*person|find.*info|lookup|whois|email.*search|phone.*search|username.*search|social.*media.*profile|reverse.*image|breach.*search|ip.*address|domain.*info)/i.test(q) ||
+                /(@gmail\.com|@yahoo\.com|@hotmail\.com|@outlook\.com)/i.test(q) ||
+                /\b(username|handle|@[\w]+)\s+(search|find|lookup|info)/i.test(q)) {
+                return { intent: 'osint', reason: 'OSINT-related query detected' };
+            }
+
+            if (/(python|javascript|java|c\+\+|rust|go|typescript|react|vue|angular|node|django|flask|api|rest|graphql|docker|kubernetes|git|linux|bash|shell|sql|mongodb|postgres)/i.test(q) &&
+                /(tutorial|how\s+to|example|code|function|class|install|setup|documentation|docs)/i.test(q)) {
+                return { intent: 'code', reason: 'Technical/coding query detected' };
+            }
+
+            return { intent: 'general', reason: 'General search query' };
+        }
+
+        async function fetchWithProxy(url, proxyIndex = 0) {
+            if (proxyIndex >= CORS_PROXIES.length) {
+                throw new Error('All CORS proxies failed');
+            }
+
+            const proxy = CORS_PROXIES[proxyIndex];
+            try {
+                const response = await fetch(proxy.url + encodeURIComponent(url), {
+                    headers: proxy.name === 'cors.sh' ? { 'x-cors-api-key': 'temp' } : {}
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.text();
+            } catch (e) {
+                console.warn(`Proxy ${proxy.name} failed:`, e.message);
+                return fetchWithProxy(url, proxyIndex + 1);
+            }
+        }
+
+        async function searchDuckDuckGo(query) {
+            const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+            const html = await fetchWithProxy(url);
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const results = [];
+
+            doc.querySelectorAll('.result, .web-result').forEach(el => {
+                const titleEl = el.querySelector('.result__a');
+                const snippetEl = el.querySelector('.result__snippet, [class*="snippet"]');
+                const urlEl = el.querySelector('.result__url, [class*="url"]');
+
+                if (titleEl && snippetEl) {
+                    let url = urlEl ? urlEl.textContent.trim() : '';
+                    let href = titleEl.getAttribute('href') || '';
+
+                    try {
+                        if (href.startsWith('/')) {
+                            const u = new URL('https://html.duckduckgo.com' + href);
+                            const actualUrl = u.searchParams.get('uddg');
+                            if (actualUrl) href = decodeURIComponent(actualUrl);
+                        }
+                    } catch (e) {}
+
+                    if (!url && href) url = href;
+
+                    results.push({
+                        title: titleEl.textContent.trim(),
+                        url: url || href,
+                        snippet: snippetEl.textContent.trim(),
+                        source: 'ddg'
+                    });
+                }
+            });
+
+            if (results.length === 0) {
+                const allLinks = doc.querySelectorAll('a.result__a');
+                const allSnippets = doc.querySelectorAll('.result__snippet');
+                for (let i = 0; i < Math.min(allLinks.length, allSnippets.length); i++) {
+                    let href = allLinks[i].getAttribute('href') || '';
+                    try {
+                        if (href.startsWith('/')) {
+                            const u = new URL('https://html.duckduckgo.com' + href);
+                            const actualUrl = u.searchParams.get('uddg');
+                            if (actualUrl) href = decodeURIComponent(actualUrl);
+                        }
+                    } catch (e) {}
+                    results.push({
+                        title: allLinks[i].textContent.trim(),
+                        url: href,
+                        snippet: allSnippets[i].textContent.trim(),
+                        source: 'ddg'
+                    });
+                }
+            }
+
+            return results;
+        }
+
+        async function searchSearXNG(query) {
+            const instances = getNextSearXNGInstances(4);
+
+            for (const instance of instances) {
+                try {
+                    const url = `${instance}/search?q=${encodeURIComponent(query)}&format=json&categories=general`;
+                    const response = await fetch(url, {
+                        signal: AbortSignal.timeout(8000)
+                    });
+
+                    if (!response.ok) continue;
+
+                    const data = await response.json();
+                    const results = (data.results || []).slice(0, 15).map(r => ({
+                        title: r.title || 'Untitled',
+                        url: r.url || '',
+                        snippet: r.content || '',
+                        source: 'searxng'
+                    }));
+
+                    if (results.length > 0) return results;
+                } catch (e) {
+                    console.warn(`SearXNG instance ${instance} failed:`, e.message);
+                }
+            }
+            return [];
+        }
+
+        async function searchGoogle(query) {
+            const results = [];
+
+            const fakeUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+            const fakeHeaders = {
+                'User-Agent': fakeUA,
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'identity',
+                'DNT': '1',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Sec-GPC': '1',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            };
+
+            const googleUrls = [
+                `https://www.google.com/search?q=${encodeURIComponent(query)}&num=20&hl=en&gl=us&safe=off&filter=0&pws=0`,
+                `https://www.google.com/search?q=${encodeURIComponent(query)}&num=20&udm=14`
+            ];
+
+            for (const googleUrl of googleUrls) {
+                if (results.length > 0) break;
+
+                for (const proxy of CORS_PROXIES) {
+                    try {
+                        const fetchUrl = proxy.name === 'cors.sh'
+                            ? proxy.url + googleUrl
+                            : proxy.url + encodeURIComponent(googleUrl);
+
+                        const response = await fetch(fetchUrl, {
+                            headers: {
+                                ...fakeHeaders,
+                                ...(proxy.name === 'cors.sh' ? { 'x-cors-api-key': 'temp' } : {})
+                            }
+                        });
+
+                        if (!response.ok) continue;
+
+                        const html = await response.text();
+
+                        if (html.length < 500 || html.includes('captcha') || html.includes('unusual traffic')) {
+                            console.warn(`Google blocked via ${proxy.name}, trying next proxy...`);
+                            continue;
+                        }
+
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+
+                        doc.querySelectorAll('#search .g, .g, [data-sokoban-container], [data-hveid]').forEach(el => {
+                            const titleEl = el.querySelector('h3, [role="heading"]');
+                            const linkEl = el.querySelector('a');
+                            const snippetEl = el.querySelector('[data-sncf~="1"], .IsZvec, .VwiC3b, .yXK7lf, .MUxGbd, .lyLwlc');
+
+                            if (titleEl && linkEl) {
+                                let url = linkEl.getAttribute('href') || '';
+
+                                if (url.startsWith('/url?')) {
+                                    try {
+                                        const u = new URL('https://www.google.com' + url);
+                                        const actualUrl = u.searchParams.get('url') || u.searchParams.get('q');
+                                        if (actualUrl) url = decodeURIComponent(actualUrl);
+                                    } catch (e) {}
+                                }
+
+                                if (url && !url.includes('google.com') && !url.startsWith('#')) {
+                                    results.push({
+                                        title: titleEl.textContent.trim(),
+                                        url: url,
+                                        snippet: snippetEl ? snippetEl.textContent.trim().substring(0, 300) : '',
+                                        source: 'google'
+                                    });
+                                }
+                            }
+                        });
+
+                        if (results.length === 0) {
+                            const allH3 = doc.querySelectorAll('h3');
+                            const allLinks = doc.querySelectorAll('a[href*="/url?q="]');
+
+                            for (let i = 0; i < Math.min(allH3.length, allLinks.length); i++) {
+                                let url = allLinks[i].getAttribute('href') || '';
+                                try {
+                                    if (url.startsWith('/url?')) {
+                                        const u = new URL('https://www.google.com' + url);
+                                        const actualUrl = u.searchParams.get('url') || u.searchParams.get('q');
+                                        if (actualUrl) url = decodeURIComponent(actualUrl);
+                                    }
+                                } catch (e) {}
+
+                                if (url && !url.includes('google.com')) {
+                                    results.push({
+                                        title: allH3[i].textContent.trim(),
+                                        url: url,
+                                        snippet: '',
+                                        source: 'google'
+                                    });
+                                }
+                            }
+                        }
+
+                        if (results.length > 0) break;
+                    } catch (e) {
+                        console.warn(`Google via ${proxy.name} failed:`, e.message);
+                    }
+                }
+            }
+
+            if (results.length === 0) {
+                const instances = getNextSearXNGInstances(4);
+                for (const instance of instances.slice(0, 4)) {
+                    try {
+                        const url = `${instance}/search?q=${encodeURIComponent(query)}&format=json&categories=general&engines=google`;
+                        const response = await fetch(url, {
+                            signal: AbortSignal.timeout(8000)
+                        });
+                        if (!response.ok) continue;
+
+                        const data = await response.json();
+                        const googleResults = (data.results || []).filter(r =>
+                            r.engine === 'google' || r.source === 'google.com'
+                        ).slice(0, 10);
+
+                        if (googleResults.length > 0) {
+                            return googleResults.map(r => ({
+                                title: r.title || 'Untitled',
+                                url: r.url || '',
+                                snippet: r.content || '',
+                                source: 'google'
+                            }));
+                        }
+                    } catch (e) {
+                        console.warn(`SearXNG Google fallback (${instance}) failed:`, e.message);
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        async function searchWikipedia(query) {
+            try {
+                const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*&srlimit=5`;
+                const searchData = await fetch(searchUrl).then(r => r.json());
+
+                const results = [];
+                for (const item of (searchData.query?.search || [])) {
+                    const url = `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title.replace(/ /g, '_'))}`;
+                    results.push({
+                        title: item.title,
+                        url: url,
+                        snippet: item.snippet.replace(/<\/?[^>]+(>|$)/g, ''),
+                        source: 'wikipedia'
+                    });
+                }
+
+                if (results.length > 0) return results;
+
+                const summaryUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&titles=${encodeURIComponent(query)}&format=json&origin=*`;
+                const summaryData = await fetch(summaryUrl).then(r => r.json());
+                const pages = summaryData.query?.pages || {};
+
+                for (const page of Object.values(pages)) {
+                    if (page.extract) {
+                        results.push({
+                            title: page.title,
+                            url: `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
+                            snippet: page.extract.replace(/<[^>]+>/g, '').substring(0, 300),
+                            source: 'wikipedia'
+                        });
+                    }
+                }
+
+                return results;
+            } catch (e) {
+                console.warn('Wikipedia search failed:', e.message);
+                return [];
+            }
+        }
+
+        async function searchBing(query) {
+            try {
+                const url = `https://lite4.bing.com/search?q=${encodeURIComponent(query)}`;
+                const html = await fetchWithProxy(url);
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const results = [];
+
+                doc.querySelectorAll('.title, .result').forEach(el => {
+                    const link = el.querySelector('a');
+                    if (link) {
+                        results.push({
+                            title: link.textContent.trim() || 'Untitled',
+                            url: link.getAttribute('href') || '',
+                            snippet: (el.nextElementSibling?.textContent || '').trim().substring(0, 200),
+                            source: 'bing'
+                        });
+                    }
+                });
+
+                return results.slice(0, 10);
+            } catch (e) {
+                console.warn('Bing search failed:', e.message);
+                return [];
+            }
+        }
+
+        function evaluateMath(query) {
+            try {
+                let expr = query
+                    .replace(/what\s+is\s+/i, '')
+                    .replace(/calculate\s+/i, '')
+                    .replace(/sqrt\(([^)]+)\)/gi, 'Math.sqrt($1)')
+                    .replace(/sin\(([^)]+)\)/gi, 'Math.sin($1)')
+                    .replace(/cos\(([^)]+)\)/gi, 'Math.cos($1)')
+                    .replace(/tan\(([^)]+)\)/gi, 'Math.tan($1)')
+                    .replace(/log\(([^)]+)\)/gi, 'Math.log10($1)')
+                    .replace(/ln\(([^)]+)\)/gi, 'Math.log($1)')
+                    .replace(/abs\(([^)]+)\)/gi, 'Math.abs($1)')
+                    .replace(/pow\(([^,]+),([^)]+)\)/gi, 'Math.pow($1,$2)')
+                    .replace(/pi/gi, 'Math.PI')
+                    .replace(/\be\b/g, 'Math.E')
+                    .replace(/\^/g, '**')
+                    .replace(/%/g, '/100');
+
+                const result = Function('"use strict"; return (' + expr + ')')();
+
+                if (typeof result === 'number' && isFinite(result)) {
+                    return {
+                        success: true,
+                        value: Number.isInteger(result) ? result : parseFloat(result.toFixed(6)),
+                        expression: query.trim()
+                    };
+                }
+            } catch (e) {}
+
+            return { success: false };
+        }
+
+        function evaluateConversion(query) {
+            const q = query.toLowerCase();
+
+            const currencyRates = {
+                usd: 1, eur: 0.92, gbp: 0.79, jpy: 149.5, cad: 1.36,
+                aud: 1.53, chf: 0.88, cny: 7.24, inr: 83.12, krw: 1320,
+                mxn: 17.15, brl: 4.97, rub: 91.5, zar: 18.9, btc: 0.000015
+            };
+
+            const unitConversions = {
+                'km to mi': 0.621371,
+                'mi to km': 1.60934,
+                'm to ft': 3.28084,
+                'ft to m': 0.3048,
+                'cm to in': 0.393701,
+                'in to cm': 2.54,
+                'kg to lb': 2.20462,
+                'lb to kg': 0.453592,
+                'g to oz': 0.035274,
+                'oz to g': 28.3495,
+                'l to gal': 0.264172,
+                'gal to l': 3.78541,
+                'c to f': null,
+                'f to c': null,
+                'k to c': null
+            };
+
+            const currencyMatch = q.match(/(\d+\.?\d*)\s*(usd|eur|gbp|jpy|cad|aud|chf|cny|inr|btc)\s+(to|in)\s+(usd|eur|gbp|jpy|cad|aud|chf|cny|inr|btc)/i);
+            if (currencyMatch) {
+                const amount = parseFloat(currencyMatch[1]);
+                const from = currencyMatch[2].toLowerCase();
+                const to = currencyMatch[4].toLowerCase();
+
+                const inUSD = amount / currencyRates[from];
+                const result = inUSD * currencyRates[to];
+
+                return {
+                    success: true,
+                    value: `${amount} ${from.toUpperCase()} = ${result.toFixed(2)} ${to.toUpperCase()}`,
+                    detail: `Rate: 1 ${from.toUpperCase()} = ${(currencyRates[to] / currencyRates[from]).toFixed(4)} ${to.toUpperCase()}`
+                };
+            }
+
+            const tempMatch = q.match(/(\d+\.?\d*)\s*(c|f|k)\s+(to|in)\s+(c|f|k)/i);
+            if (tempMatch) {
+                let value = parseFloat(tempMatch[1]);
+                let from = tempMatch[2].toLowerCase();
+                let to = tempMatch[4].toLowerCase();
+
+                let celsius;
+                if (from === 'c') celsius = value;
+                else if (from === 'f') celsius = (value - 32) * 5/9;
+                else celsius = value - 273.15;
+
+                let result;
+                if (to === 'c') result = celsius;
+                else if (to === 'f') result = celsius * 9/5 + 32;
+                else result = celsius + 273.15;
+
+                return {
+                    success: true,
+                    value: `${value}°${from.toUpperCase()} = ${result.toFixed(2)}°${to.toUpperCase()}`,
+                    detail: 'Temperature conversion'
+                };
+            }
+
+            const unitMatch = q.match(/(\d+\.?\d*)\s*(km|mi|m|ft|cm|in|kg|lb|g|oz|l|gal)\s+(to|in)\s+(km|mi|m|ft|cm|in|kg|lb|g|oz|l|gal)/i);
+            if (unitMatch) {
+                const amount = parseFloat(unitMatch[1]);
+                const from = unitMatch[2].toLowerCase();
+                const to = unitMatch[4].toLowerCase();
+                const key = `${from} to ${to}`;
+
+                if (unitConversions[key] !== undefined) {
+                    const rate = unitConversions[key];
+                    return {
+                        success: true,
+                        value: `${amount} ${from} = ${(amount * rate).toFixed(4)} ${to}`,
+                        detail: `1 ${from} = ${rate} ${to}`
+                    };
+                }
+            }
+
+            return { success: false };
+        }
+
+        async function getAISummary(query, results, intent) {
+            if (results.length === 0) return '';
+
+            const snippets = results.slice(0, 8).map(r =>
+                `- ${r.title}: ${r.snippet.substring(0, 150)}`
+            ).join('\n');
+
+            const prompts = {
+                osint: `You are an OSINT analyst. Based on these search results for the query "${query}", provide a concise intelligence summary. Focus on actionable findings, potential leads, and relevant connections. Keep it under 150 words.\n\nResults:\n${snippets}`,
+                code: `You are a senior developer. Based on these search results for "${query}", provide a concise technical summary with key points. Keep it under 150 words.\n\nResults:\n${snippets}`,
+                math: `Based on the search results for the math query "${query}", provide a brief explanation of the solution. Keep it under 100 words.\n\nResults:\n${snippets}`,
+                conversion: `Based on the search results for "${query}", provide any additional context about this conversion. Keep it under 100 words.\n\nResults:\n${snippets}`,
+                general: `Based on these search results for "${query}", provide a concise summary of the key information. Keep it under 150 words.\n\nResults:\n${snippets}`
+            };
+
+            try {
+                return await callAI(prompts[intent] || prompts.general, 300);
+            } catch (e) {
+                console.warn('AI summary failed:', e);
+                return '';
+            }
+        }
+
+        function deduplicateResults(results) {
+            const seen = new Set();
+            return results.filter(r => {
+                const key = r.url.toLowerCase().replace(/\/$/, '');
+                if (seen.has(key) || !key || key === 'undefined') return false;
+                seen.add(key);
+                return true;
+            });
+        }
+
+        function rankResults(results, query) {
+            const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+
+            return results.map(r => {
+                let score = 0;
+                const titleLower = r.title.toLowerCase();
+                const snippetLower = r.snippet.toLowerCase();
+
+                terms.forEach(term => {
+                    if (titleLower.includes(term)) score += 10;
+                    if (snippetLower.includes(term)) score += 5;
+                });
+
+                if (r.source === 'wikipedia') score += 3;
+
+                return { ...r, score };
+            }).sort((a, b) => b.score - a.score);
+        }
+
+        function highlightTerms(text, query) {
+            const terms = query.split(/\s+/).filter(t => t.length > 2);
+            let result = escapeHtml(text);
+            terms.forEach(term => {
+                const regex = new RegExp(`(${escapeRegex(term)})`, 'gi');
+                result = result.replace(regex, '<mark>$1</mark>');
+            });
+            return result;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function setLoading(visible, text = '') {
+            loading.classList.toggle('visible', visible);
+            if (text) loadingText.textContent = text;
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.toggle('visible', !!message);
+        }
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            addToHistory(query);
+            hideHistory();
+
+            allResults = [];
+            showError('');
+            $('mathResult').classList.remove('visible');
+            $('conversionResult').classList.remove('visible');
+            $('osintResult').classList.remove('visible');
+            $('aiSummary').classList.remove('visible');
+            resultsContainer.classList.remove('visible');
+            emptyState.style.display = 'none';
+            engineSelector.classList.remove('visible');
+
+            header.classList.add('compact');
+            searchContainer.classList.add('compact');
+
+            setLoading(true, 'Detecting intent...');
+
+            const localIntent = detectIntentLocal(query);
+            const aiIntent = detectIntent(query);
+
+            aiIntent.then(result => {
+                currentIntent = result.intent;
+            }).catch(() => {
+                currentIntent = localIntent.intent;
+            });
+
+            currentIntent = localIntent.intent;
+
+            const config = INTENT_CONFIG[currentIntent];
+            intentBadge.className = `intent-badge ${config.class}`;
+            intentBadge.textContent = `${config.icon} ${config.label}`;
+            intentText.textContent = config.description;
+            intentBar.classList.add('visible');
+
+            const activeEngines = config.sources.filter(s => userEngines.includes(s));
+            if (activeEngines.length === 0) {
+                userEngines = ['google', 'ddg', 'searxng', 'wikipedia'];
+                engineSelector.querySelectorAll('input').forEach(i => i.checked = true);
+                localStorage.setItem('goggles_engines', JSON.stringify(userEngines));
+            }
+            const sources = config.sources.filter(s => userEngines.includes(s));
+
+            loadingSources.innerHTML = sources.map(s =>
+                `<span class="source-pill" data-source="${s}">${s.toUpperCase()}</span>`
+            ).join('');
+
+            setLoading(true, `Searching ${sources.length} engine${sources.length > 1 ? 's' : ''}...`);
+
+            const searchPromises = [];
+
+            if (currentIntent === 'math') {
+                const mathResult = evaluateMath(query);
+                if (mathResult.success) {
+                    $('mathValue').textContent = mathResult.value;
+                    $('mathDetail').textContent = `Expression: ${mathResult.expression}`;
+                    $('mathResult').classList.add('visible');
+                }
+            }
+
+            if (currentIntent === 'conversion') {
+                const convResult = evaluateConversion(query);
+                if (convResult.success) {
+                    $('conversionValue').textContent = convResult.value;
+                    $('conversionDetail').textContent = convResult.detail;
+                    $('conversionResult').classList.add('visible');
+                }
+            }
+
+            if (sources.includes('ddg')) {
+                searchPromises.push(
+                    searchDuckDuckGo(query).then(results => {
+                        markSourceDone('ddg');
+                        return results;
+                    }).catch(e => {
+                        console.warn('DDG error:', e);
+                        markSourceDone('ddg');
+                        return [];
+                    })
+                );
+            }
+
+            if (sources.includes('google')) {
+                searchPromises.push(
+                    searchGoogle(query).then(results => {
+                        markSourceDone('google');
+                        return results;
+                    }).catch(e => {
+                        console.warn('Google error:', e);
+                        markSourceDone('google');
+                        return [];
+                    })
+                );
+            }
+
+            if (sources.includes('searxng')) {
+                const searxngQuery = currentIntent === 'osint'
+                    ? `${query} site:linkedin.com OR site:twitter.com OR site:facebook.com OR site:instagram.com OR site:github.com`
+                    : query;
+
+                searchPromises.push(
+                    searchSearXNG(searxngQuery).then(results => {
+                        markSourceDone('searxng');
+                        return results;
+                    }).catch(e => {
+                        console.warn('SearXNG error:', e);
+                        markSourceDone('searxng');
+                        return [];
+                    })
+                );
+            }
+
+            if (sources.includes('wikipedia')) {
+                searchPromises.push(
+                    searchWikipedia(query).then(results => {
+                        markSourceDone('wikipedia');
+                        return results;
+                    }).catch(e => {
+                        console.warn('Wikipedia error:', e);
+                        markSourceDone('wikipedia');
+                        return [];
+                    })
+                );
+            }
+
+            if (sources.includes('bing')) {
+                searchPromises.push(
+                    searchBing(query).then(results => {
+                        markSourceDone('bing');
+                        return results;
+                    }).catch(e => {
+                        console.warn('Bing error:', e);
+                        markSourceDone('bing');
+                        return [];
+                    })
+                );
+            }
+
+            const sourceResults = await Promise.allSettled(searchPromises);
+            allResults = sourceResults
+                .filter(r => r.status === 'fulfilled')
+                .flatMap(r => r.value);
+
+            allResults = deduplicateResults(allResults);
+            allResults = rankResults(allResults, query);
+
+            setLoading(false);
+
+            if (currentIntent === 'osint' && allResults.length > 0) {
+                const osintSummary = allResults.slice(0, 5).map(r =>
+                    `• ${r.title} - ${r.url}`
+                ).join('\n');
+
+                $('osintValue').textContent = `${allResults.length} leads found`;
+                $('osintDetail').innerHTML = `<pre style="white-space:pre-wrap;font-size:0.8rem;color:var(--text-secondary);margin-top:8px;">${escapeHtml(osintSummary)}</pre>`;
+                $('osintResult').classList.add('visible');
+            }
+
+            if (allResults.length > 0) {
+                const summary = await getAISummary(query, allResults, currentIntent);
+                if (summary) {
+                    $('aiSummaryContent').innerHTML = summary.split('\n').map(p =>
+                        p.trim() ? `<p>${escapeHtml(p)}</p>` : ''
+                    ).join('');
+                    $('aiSummary').classList.add('visible');
+                }
+
+                renderResults(allResults, query);
+            } else {
+                emptyState.style.display = 'block';
+                emptyState.querySelector('h2').textContent = 'No results found';
+                emptyState.querySelector('p').textContent = 'Try different keywords, enable more engines below, or check your connection';
+                engineSelector.classList.add('visible');
+            }
+        }
+
+        function markSourceDone(source) {
+            const pill = loadingSources.querySelector(`[data-source="${source}"]`);
+            if (pill) {
+                pill.classList.remove('active');
+                pill.classList.add('done');
+            }
+        }
+
+        function renderResults(results, query) {
+            resultsCount.innerHTML = `Found <span>${results.length}</span> results`;
+
+            resultsList.innerHTML = results.map((r, i) => `
+                <div class="result-card" style="animation-delay: ${i * 0.05}s">
+                    <span class="result-source ${r.source}">${r.source}</span>
+                    <div class="result-title">
+                        <a href="${escapeHtml(r.url)}" target="_blank" rel="noopener">${escapeHtml(r.title)}</a>
+                    </div>
+                    <a class="result-url" href="${escapeHtml(r.url)}" target="_blank" rel="noopener">${escapeHtml(r.url)}</a>
+                    <div class="result-snippet">${highlightTerms(r.snippet, query)}</div>
+                </div>
+            `).join('');
+
+            resultsContainer.classList.add('visible');
+        }
+
+        function sortResults() {
+            const sortBy = $('sortSelect').value;
+            let sorted = [...allResults];
+
+            if (sortBy === 'source') {
+                sorted.sort((a, b) => a.source.localeCompare(b.source));
+            }
+
+            const query = searchInput.value.trim();
+            renderResults(sorted, query);
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>
