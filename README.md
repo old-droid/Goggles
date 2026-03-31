@@ -3,7 +3,7 @@
 AI-powered meta search engine that aggregates results from multiple search engines with intent-based query classification.
 
 ## Features
-
+official instance https://gogglesofficial.netlify.app/
 - **Multi-engine search** - Google, DuckDuckGo, SearXNG, Wikipedia, Bing
 - **AI intent detection** - Automatically classifies queries as General, Math, Conversion, OSINT, or Code
 - **Dynamic SearXNG instances** - Fetches live instances from searx.space, rotates per search
